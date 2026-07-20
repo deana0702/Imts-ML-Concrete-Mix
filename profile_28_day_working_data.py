@@ -10,7 +10,7 @@ from pandas.api.types import is_bool_dtype, is_numeric_dtype
 
 INPUT_FILE = Path(
     "data/prepared_28_day_standard_cure/"
-    "03_standard_cured_test_level_28_working_data.csv"
+    "03_standard_cured_test_level_28_working_data_drop_rows_drop_columns_1.csv"
 )
 
 OUTPUT_DIRECTORY = Path(

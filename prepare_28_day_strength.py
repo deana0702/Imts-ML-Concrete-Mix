@@ -11,7 +11,7 @@ import pandas as pd
 # Configuration
 # ============================================================
 
-INPUT_FILE = Path("data/final_data.csv")
+INPUT_FILE = Path("C:\\Users\\USDF715474\\OneDrive - WSP O365\\Imts\\Imts_ML\\Albuquerque-Concrete.csv")
 OUTPUT_DIRECTORY = Path("data/prepared_28_day_standard_cure")
 
 TARGET_NOMINAL_AGE = 28
