@@ -3,7 +3,7 @@
 
 
 import pandas as pd
-
+CONCRETE_ASTM_C39_SUBTYPE_ID = 30050
 df = pd.read_csv(
     "data\\prepared_28_day_standard_cure\\"
     "03_standard_cured_test_level_28_working_data.csv",
@@ -26,7 +26,8 @@ df = df[(df["AverageActualAgeDays"].notna()) & (df["AverageActualAgeDays"] != 0)
 df = df[(df["calcWCRatio"].notna()) & (df["calcWCRatio"] != 0)]
 # Remove rows where FlyAshContent_lbs_yd3 is missing
 df = df[(df["FlyAshContent_lbs_yd3"].notna())]
-
+# Extract only the rows where testSubTypeId is equal to 30050 (Concrete ASTM C39)
+df = df.loc[df["testSubTypeId"].eq(CONCRETE_ASTM_C39_SUBTYPE_ID )]
 
 print(f"After dropping rows: {df.shape}")
 

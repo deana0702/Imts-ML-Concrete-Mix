@@ -18,11 +18,11 @@ from sklearn.model_selection import GroupShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-
+BASEPATH = Path("data/prepared_28_day_standard_cure")
 DATA_FILE = Path(
-    "data/prepared_28_day_standard_cure/"
-    "03_standard_cured_test_level_28_working_data_drop_rows_drop_columns_1.csv"
+    BASEPATH / "03_standard_cured_test_level_28_working_data_drop_rows_drop_columns_1.csv"
 )
+OUTPUT_PATH = Path(BASEPATH, "results_baseline_models")
 
 FEATURE_COLUMNS = [
     "CalcCementContent_lbs_yd3",
@@ -267,18 +267,19 @@ def main() -> None:
         - prediction_results["PredictedStrength28_psi"]
     )
 
+    OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
     prediction_results.to_csv(
-        "strength_prediction_test_results.csv",
+        OUTPUT_PATH / "strength_prediction_test_results.csv",
         index=False,
     )
 
     results_dataframe.to_csv(
-        "strength_model_comparison.csv",
+        OUTPUT_PATH / "strength_model_comparison.csv",
         index=False,
     )
 
     importance_dataframe.to_csv(
-        "strength_feature_importance.csv",
+        OUTPUT_PATH / "strength_feature_importance.csv",
         index=False,
     )
 
