@@ -19,7 +19,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 
-DATA_FILE = Path("concrete_28_day_working_data.csv")
+DATA_FILE = Path(
+    "data/prepared_28_day_standard_cure/"
+    "03_standard_cured_test_level_28_working_data_drop_rows_drop_columns_1.csv"
+)
 
 FEATURE_COLUMNS = [
     "CalcCementContent_lbs_yd3",
