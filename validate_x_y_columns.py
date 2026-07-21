@@ -23,7 +23,6 @@ print(suffix_columns)
 # StandardCuredSpecimenCount28, UniqueStandardCuredSpecimenCount28
 remove_columns = [
     "DesignStrength",
-    "castTime",
     "ApplicableSpecifiedStrength",
     "ApplicableStrengthType",
     "DesignStrengthRowCount",
@@ -50,7 +49,6 @@ remove_columns = [
     "waterQuantity",
     "WaterUnits",
     "CalcYield_yd3",
-    "TotalCementitiousContent_lbs_yd3",
     "FlyAshFraction",
     "StandardCuredSpecimenCount28",
     "UniqueStandardCuredSpecimenCount28"

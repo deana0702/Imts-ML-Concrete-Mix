@@ -11,7 +11,7 @@ import pandas as pd
 # Configuration
 # ============================================================
 
-INPUT_FILE = Path("C:\\Users\\USDF715474\\OneDrive - WSP O365\\Imts\\Imts_ML\\Albuquerque-Concrete.csv")
+INPUT_FILE = Path("data/Albuquerque-Concrete.csv")
 OUTPUT_DIRECTORY = Path("data/prepared_28_day_standard_cure")
 
 TARGET_NOMINAL_AGE = 28
@@ -57,6 +57,9 @@ REQUIRED_COLUMNS = {
     "daysToAge",
     "wasFieldCured",
     "castDate",
+    "batchTime",
+    "sampleTime",
+    "castTime",
     "testedOnDate",
     "SpecifiedBreakAge",
     "RequiredStrength",
@@ -496,8 +499,29 @@ def main() -> None:
     )
 
     # ========================================================
-    # 3. Parse dates and calculate actual break age
+    # 3. Parse dates/times and calculate elapsed values
     # ========================================================
+
+    batch_time = pd.to_timedelta(
+        final_data["batchTime"],
+        errors="coerce",
+    )
+    sample_time = pd.to_timedelta(
+        final_data["sampleTime"],
+        errors="coerce",
+    )
+    cast_time = pd.to_timedelta(
+        final_data["castTime"],
+        errors="coerce",
+    )
+
+    final_data["BatchToSampleMinutes"] = (
+        sample_time - batch_time
+    ).dt.total_seconds() / 60
+
+    final_data["BatchToCastMinutes"] = (
+        cast_time - batch_time
+    ).dt.total_seconds() / 60
 
     final_data["castDate"] = pd.to_datetime(
         final_data["castDate"],
