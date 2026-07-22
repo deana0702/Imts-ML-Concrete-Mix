@@ -53,4 +53,115 @@ plt.title("Actual vs. Predicted Strength — Random Forest")
 
 plt.tight_layout() 
 
-plt.savefig(OUTPUT_PATH / "actual_vs_predicted_strength.png")
+#plt.savefig(OUTPUT_PATH / "actual_vs_predicted_strength.png")
+plt.show()
+
+prediction_results["Residual_psi"] = ( 
+
+    prediction_results["ActualStrength28_psi"] 
+
+    - prediction_results["PredictedStrength28_psi"] 
+
+) 
+
+  
+
+plt.figure(figsize=(10, 6)) 
+
+plt.hist( 
+
+    prediction_results["Residual_psi"], 
+
+    bins=40, 
+
+) 
+
+plt.axvline(0, linestyle="--") 
+
+plt.xlabel("Residual: Actual - Predicted (psi)") 
+
+plt.ylabel("Number of Tests") 
+
+plt.title("Random Forest Residual Distribution") 
+
+plt.tight_layout() 
+
+plt.show() 
+
+
+
+prediction_results["StrengthRange"] = pd.cut( 
+
+    prediction_results["ActualStrength28_psi"], 
+
+    bins=[0, 3000, 4000, 5000, 6000, 7000, 9000, float("inf")], 
+
+) 
+
+  
+
+error_by_range = ( 
+
+    prediction_results 
+
+    .groupby("StrengthRange", observed=True) 
+
+    .agg( 
+
+        TestCount=("AbsoluteError_psi", "size"), 
+
+        MAE=("AbsoluteError_psi", "mean"), 
+
+        MedianError=("AbsoluteError_psi", "median"), 
+
+        ActualMean=("ActualStrength28_psi", "mean"), 
+
+        PredictedMean=("PredictedStrength28_psi", "mean"), 
+
+    ) 
+
+) 
+
+  
+
+print(error_by_range) 
+
+
+largest_errors = prediction_results.sort_values( 
+
+    "AbsoluteError_psi", 
+
+    ascending=False, 
+
+).head(50) 
+
+  
+
+largest_errors.to_csv( 
+
+    "largest_strength_prediction_errors.csv", 
+
+    index=False, 
+
+) 
+
+  
+
+print( 
+
+    largest_errors[ 
+
+        [ 
+
+            "ActualStrength28_psi", 
+
+            "PredictedStrength28_psi", 
+
+            "AbsoluteError_psi", 
+
+        ] 
+
+    ].head(20) 
+
+) 
+
