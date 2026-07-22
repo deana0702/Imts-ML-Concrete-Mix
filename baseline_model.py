@@ -24,7 +24,7 @@ DATA_FILE = Path(
 )
 OUTPUT_PATH = Path(BASEPATH, "results_baseline_models")
 
-FEATURE_COLUMNS = [
+BATCH_FEATURE_COLUMNS = [
     "CalcCementContent_lbs_yd3",
     "FlyAshContent_lbs_yd3",
     "SandSSD_lbs_yd3",
@@ -33,7 +33,9 @@ FEATURE_COLUMNS = [
     "SandMoisture_percent",
     "AggregateMoisture_percent",
 ]
-
+FIELD_FEATURE_COLUMNS = BATCH_FEATURE_COLUMNS + [
+    "uwSlump_actual", "uwAir_actual", "waterAdded"
+]
 TARGET_COLUMN = "AverageActualStrength28_psi"
 
 GROUP_COLUMNS = [
@@ -138,7 +140,7 @@ def main() -> None:
     print(f"Original rows: {len(dataframe):,}")
     print(f"Model rows:    {len(model_data):,}")
 
-    X = model_data[FEATURE_COLUMNS]
+    X = model_data[FIELD_FEATURE_COLUMNS]
     y = model_data[TARGET_COLUMN]
     groups = create_groups(model_data)
 
@@ -177,7 +179,11 @@ def main() -> None:
             steps=[
                 (
                     "imputer",
-                    SimpleImputer(strategy="median"),
+                    SimpleImputer(
+                        strategy="median",
+                        add_indicator=True,
+                    ),
+                    
                 ),
                 (
                     "scaler",
@@ -193,7 +199,7 @@ def main() -> None:
             steps=[
                 (
                     "imputer",
-                    SimpleImputer(strategy="median"),
+                    SimpleImputer(strategy="median", add_indicator=True),
                 ),
                 (
                     "model",
@@ -245,7 +251,7 @@ def main() -> None:
 
     importance_dataframe = pd.DataFrame(
         {
-            "Feature": FEATURE_COLUMNS,
+            "Feature": FIELD_FEATURE_COLUMNS,
             "Importance": importance.importances_mean,
         }
     ).sort_values(

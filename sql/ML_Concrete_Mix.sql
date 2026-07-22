@@ -376,7 +376,7 @@ SELECT
     /* =============================================================
        Required concrete test fields
        ============================================================= */
-
+	c.waterAdded,
     c.adMixture,
     c.plantNumber,
     c.mixNumber,
