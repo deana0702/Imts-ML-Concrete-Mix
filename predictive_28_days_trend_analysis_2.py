@@ -45,6 +45,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+BASEPATH = Path("data/prepared_28_day_standard_cure")
+INPUT_FILE = BASEPATH / (
+    "03_standard_cured_test_level_28_working_data_drop_rows_drop_columns_1.csv"
+)
+OUTPUT_PATH = BASEPATH / "predictive_28_days_trend_analysis"
 
 REQUIRED_COLUMNS = {
     "testId",
@@ -67,6 +72,23 @@ GROUP_COLUMNS = [
     "RequiredStrength",
 ]
 
+GROUP_NORMALIZED_COLUMNS = [
+    "SupplierNameNormalized",
+    "plantNumberNormalized",
+    "mixNumberNormalized",
+]
+
+GROUP_KEY_COLUMNS = [
+    *GROUP_NORMALIZED_COLUMNS,
+    "RequiredStrength",
+]
+
+GROUP_NORMALIZED_COLUMN_MAP = {
+    "SupplierName": "SupplierNameNormalized",
+    "plantNumber": "plantNumberNormalized",
+    "mixNumber": "mixNumberNormalized",
+}
+
 
 @dataclass(frozen=True)
 class CandidateThresholds:
@@ -85,32 +107,40 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "input_file",
+        nargs="?",
         type=Path,
-        help="Input .xlsx, .xls, or .csv file.",
+        default=INPUT_FILE,
+        help=(
+            "Input .xlsx, .xls, or .csv file. "
+            f"Default: {INPUT_FILE.as_posix()}."
+        ),
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("mix_review_output"),
-        help="Directory for CSV, PNG, TXT, and HTML outputs.",
+        default=OUTPUT_PATH,
+        help=(
+            "Directory for CSV, PNG, TXT, and HTML outputs. "
+            f"Default: {OUTPUT_PATH.as_posix()}."
+        ),
     )
     parser.add_argument(
         "--sheet-name",
-        default=0,
+        default="predictive_28_days_trend_analysis.xlsx",
         help=(
             "Excel sheet name or zero-based sheet index. "
-            "Ignored for CSV. Default: first sheet."
+            "Ignored for CSV. Default: predictive_28_days_trend_analysis.xlsx."
         ),
     )
     parser.add_argument(
         "--months",
         type=int,
-        default=18,
-        help="Number of months included in the analysis. Default: 18.",
+        default=200,
+        help="Number of months included in the analysis. Default: 90.",
     )
     parser.add_argument(
         "--as-of-date",
-        default=None,
+        default="2026-07-22",
         help=(
             "Analysis end date in YYYY-MM-DD format. "
             "Default: maximum castDate found in the dataset."
@@ -231,6 +261,22 @@ def safe_name(value: object, max_length: int = 80) -> str:
     return (text or "unknown")[:max_length]
 
 
+def normalize_group_value(value: object) -> object:
+    if pd.isna(value):
+        return pd.NA
+
+    text = str(value).strip()
+    if not text or text.lower() in {"nan", "none", "<na>"}:
+        return pd.NA
+
+    text = re.sub(r"\s+", "", text).upper()
+
+    if text.isdigit():
+        text = str(int(text))
+
+    return text
+
+
 def format_group_label(row: pd.Series) -> str:
     return (
         f"{row['SupplierName']} | Plant {row['plantNumber']} | "
@@ -274,6 +320,13 @@ def prepare_analysis_data(
             {"": pd.NA, "nan": pd.NA, "None": pd.NA, "<NA>": pd.NA}
         )
 
+    for source_column, normalized_column in GROUP_NORMALIZED_COLUMN_MAP.items():
+        df[normalized_column] = (
+            df[source_column]
+            .map(normalize_group_value)
+            .astype("string")
+        )
+
     if as_of_date:
         analysis_end = pd.Timestamp(as_of_date).normalize()
     else:
@@ -282,22 +335,28 @@ def prepare_analysis_data(
             raise ValueError("No valid castDate values were found.")
         analysis_end = analysis_end.normalize()
 
-    analysis_start = analysis_end - pd.DateOffset(months=months)
+    # Recent-period filtering disabled: use full dataset range for analytics.
+    # analysis_start = analysis_end - pd.DateOffset(months=months)
+    analysis_start = df["castDate"].min()
+    if pd.isna(analysis_start):
+        raise ValueError("No valid castDate values were found.")
+    analysis_start = analysis_start.normalize()
 
     valid_28_day_flag = (
         df["SpecifiedBreakAgeIs28"]
         | df["SpecifiedBreakAge"].eq(28)
     )
 
+    # Recent-period filter intentionally disabled:
+    # df["castDate"].between(analysis_start, analysis_end, inclusive="both")
     mask = (
-        df["castDate"].between(analysis_start, analysis_end, inclusive="both")
-        & valid_28_day_flag
+        valid_28_day_flag
         & ~df["SpecifiedStrengthMissing"]
         & df["RequiredStrength"].notna()
         & df["AverageActualStrength28_psi"].notna()
         & df["testId"].notna()
-        & df["SupplierName"].notna()
-        & df["mixNumber"].notna()
+        & df["SupplierNameNormalized"].notna()
+        & df["mixNumberNormalized"].notna()
         & df["RequiredStrength"].gt(0)
         & df["AverageActualStrength28_psi"].gt(0)
     )
@@ -312,6 +371,9 @@ def prepare_analysis_data(
     filtered = df.loc[mask].copy()
 
     filtered["plantNumber"] = filtered["plantNumber"].fillna("<Unknown>")
+    filtered["plantNumberNormalized"] = filtered[
+        "plantNumberNormalized"
+    ].fillna("<UNKNOWN>")
     filtered["StrengthMargin_psi"] = (
         filtered["AverageActualStrength28_psi"]
         - filtered["RequiredStrength"]
@@ -325,11 +387,14 @@ def prepare_analysis_data(
     # them to one analytical test record. Average strength is used safely.
     test_level = (
         filtered.groupby(
-            ["testId", *GROUP_COLUMNS],
+            ["testId", *GROUP_KEY_COLUMNS],
             dropna=False,
             as_index=False,
         )
         .agg(
+            SupplierName=("SupplierName", "first"),
+            plantNumber=("plantNumber", "first"),
+            mixNumber=("mixNumber", "first"),
             castDate=("castDate", "min"),
             AverageActualStrength28_psi=(
                 "AverageActualStrength28_psi",
@@ -355,7 +420,7 @@ def prepare_analysis_data(
         "UniqueTestsAfterDeduplication": test_level["testId"].nunique(),
         "DuplicateRowsCollapsed": max(len(filtered) - len(test_level), 0),
         "DistinctMixGroups": int(
-            test_level[GROUP_COLUMNS].drop_duplicates().shape[0]
+            test_level[GROUP_KEY_COLUMNS].drop_duplicates().shape[0]
         ),
     }
 
@@ -376,8 +441,11 @@ def summarize_mix_performance(
         return pd.DataFrame()
 
     summary = (
-        test_level.groupby(GROUP_COLUMNS, dropna=False)
+        test_level.groupby(GROUP_KEY_COLUMNS, dropna=False)
         .agg(
+            SupplierName=("SupplierName", "first"),
+            plantNumber=("plantNumber", "first"),
+            mixNumber=("mixNumber", "first"),
             TestCount=("testId", "nunique"),
             MeanActualStrengthPsi=(
                 "AverageActualStrength28_psi",
@@ -432,7 +500,7 @@ def summarize_mix_performance(
 
     summary["PeerPercentileWithinSupplierAndRequired"] = (
         summary.groupby(
-            ["SupplierName", "RequiredStrength"],
+            ["SupplierNameNormalized", "RequiredStrength"],
             dropna=False,
         )["MeanMarginPsi"]
         .transform(percentile_rank)
@@ -745,10 +813,10 @@ def save_candidate_boxplot(
     if selected.empty:
         return None
 
-    key_frame = selected[GROUP_COLUMNS].copy()
+    key_frame = selected[GROUP_KEY_COLUMNS].copy()
     merged = test_level.merge(
         key_frame,
-        on=GROUP_COLUMNS,
+        on=GROUP_KEY_COLUMNS,
         how="inner",
     )
 
@@ -757,13 +825,13 @@ def save_candidate_boxplot(
 
     selected_labels = selected["GroupLabel"].tolist()
     label_lookup = {
-        tuple(row[column] for column in GROUP_COLUMNS): row["GroupLabel"]
+        tuple(row[column] for column in GROUP_KEY_COLUMNS): row["GroupLabel"]
         for _, row in selected.iterrows()
     }
 
     merged["GroupLabel"] = merged.apply(
         lambda row: label_lookup[
-            tuple(row[column] for column in GROUP_COLUMNS)
+            tuple(row[column] for column in GROUP_KEY_COLUMNS)
         ],
         axis=1,
     )
@@ -813,7 +881,7 @@ def save_candidate_trends(
 
     for _, candidate in candidates.iterrows():
         mask = pd.Series(True, index=test_level.index)
-        for column in GROUP_COLUMNS:
+        for column in GROUP_KEY_COLUMNS:
             mask &= test_level[column].eq(candidate[column])
 
         group_data = (
@@ -1030,8 +1098,8 @@ def main() -> int:
         min_p05_margin_psi=args.min_p05_margin,
         max_failure_rate_pct=args.max_failure_rate,
     )
-
-    output_dir = args.output_dir.resolve()
+    
+    output_dir = args.output_dir
     charts_dir = output_dir / "charts"
     trends_dir = charts_dir / "candidate_trends"
 
@@ -1157,8 +1225,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    except Exception as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        raise SystemExit(1)
+    main()
