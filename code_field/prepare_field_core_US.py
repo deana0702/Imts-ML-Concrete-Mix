@@ -80,9 +80,9 @@ DEFAULT_MIN_VALID_DATE = "2000-01-01"
 #
 # These paths are resolved relative to this Python file, so the script works
 # even when it is launched from a different current working directory.
-SCRIPT_DIR = Path(__file__).resolve().parent
-INPUT_FILE = SCRIPT_DIR / "data" / "field_core_US_data.csv"
-OUTPUT_DIR = SCRIPT_DIR / "data" / "prepared_field_core_US"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+INPUT_FILE = ROOT_DIR / "data" / "field_core_US_data.csv"
+OUTPUT_DIR = ROOT_DIR / "data" / "prepared_field_core_US"
 
 CSV_ENCODING: str | None = None  # Auto-detect UTF-8/UTF-8-SIG/CP1252/Latin-1.
 MIN_VALID_DATE = DEFAULT_MIN_VALID_DATE

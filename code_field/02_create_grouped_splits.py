@@ -72,7 +72,7 @@ def main() -> int:
     print("Step 2 started: create reusable grouped train/test split")
     base = read_csv(INPUT_BASE)
     with_required = read_csv(INPUT_WITH_REQUIRED)
-
+    print(f"with_required shape: {with_required.shape}")
     if "testId" not in base.columns or TARGET not in base.columns:
         raise KeyError("The clean base data must contain testId and the target column.")
 
