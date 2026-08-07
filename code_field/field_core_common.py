@@ -80,13 +80,13 @@ def read_csv(path: Path) -> pd.DataFrame:
         )
     return pd.read_csv(path, low_memory=False)
 
-def split_data(df_in: pd.DataFrame, group_column: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+def split_data(df: pd.DataFrame, group_column: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     # Ensure the grouping column exists
-    if GROUP_COLUMN not in df.columns:
-        raise KeyError(f"Grouping column '{GROUP_COLUMN}' not found in the DataFrame.")
+    if group_column not in df.columns:
+        raise KeyError(f"Grouping column '{group_column}' not found in the DataFrame.")
 
     # Drop rows where group or target is missing
-    clean_df = df_in.dropna(subset=[GROUP_COLUMN, TARGET]).copy()
+    clean_df = df.dropna(subset=[GROUP_COLUMN, TARGET]).copy()
     splitter = GroupShuffleSplit(
         n_splits=1,
         test_size=TEST_SIZE,
