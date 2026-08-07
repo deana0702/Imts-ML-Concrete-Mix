@@ -61,6 +61,11 @@ from sklearn.model_selection import GroupKFold, GroupShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+try:
+    from xgboost import XGBRegressor
+except ImportError:
+    XGBRegressor = None
+
 
 # =============================================================================
 # 1. CONFIGURATION
@@ -677,7 +682,7 @@ def cross_fitted_target_encode(
 # =============================================================================
 
 def build_regression_models() -> dict[str, object]:
-    return {
+    models: dict[str, object] = {
         "DummyMean": DummyRegressor(
             strategy="mean"
         ),
@@ -747,6 +752,37 @@ def build_regression_models() -> dict[str, object]:
             ]
         ),
     }
+
+    if XGBRegressor is not None:
+        models["XGBoost"] = Pipeline(
+            steps=[
+                (
+                    "imputer",
+                    SimpleImputer(
+                        strategy="median",
+                        add_indicator=True,
+                    ),
+                ),
+                (
+                    "model",
+                    XGBRegressor(
+                        objective="reg:squarederror",
+                        n_estimators=400,
+                        learning_rate=0.05,
+                        max_depth=6,
+                        min_child_weight=5,
+                        subsample=0.8,
+                        colsample_bytree=0.8,
+                        reg_lambda=1.0,
+                        random_state=RANDOM_STATE,
+                        n_jobs=-1,
+                        tree_method="hist",
+                    ),
+                ),
+            ]
+        )
+
+    return models
 
 
 def regression_metrics(
