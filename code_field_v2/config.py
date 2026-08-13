@@ -19,9 +19,9 @@ DEFAULT_INPUT_PATH = ROOT_DIR / "data/concrete_us_data_v2.csv"
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "data/field_core_outputs_v2/preprocessed"
 
 
-REGRESSION_INPUT_PATH = ROOT_DIR / "data/preprocessed/concrete_regression_eligible.csv"
+REGRESSION_INPUT_PATH = OUTPUT_DIR / "preprocessed/concrete_regression_eligible.csv"
 
-CLASSIFICATION_INPUT_PATH = ROOT_DIR / "data/preprocessed/concrete_classification_eligible.csv"
+CLASSIFICATION_INPUT_PATH = OUTPUT_DIR / "preprocessed/concrete_classification_eligible.csv"
 
 REGRESSION_OUTPUT_DIR = OUTPUT_DIR / "results/regression"
 
@@ -40,7 +40,10 @@ US_UNIT_SYSTEM_ID = 0
 REGRESSION_TARGET = "AverageActualStrength28_psi"
 CLASSIFICATION_TARGET = "FailureFlag28"
 
-
+TEST_SIZE = 0.2
+RANDOM_STATE = 42
+VALIDATION_SIZE_WITHIN_TRAIN = 0.2
+N_JOBS = 1
 # ---------------------------------------------------------------------------
 # Day-0 features: known at or near placement time
 # ---------------------------------------------------------------------------
