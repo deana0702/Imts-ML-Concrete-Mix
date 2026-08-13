@@ -10,22 +10,67 @@ from __future__ import annotations
 from pathlib import Path
 
 
+# This version is required by 02/03 training scripts delivered together.
+CONFIG_VERSION = "2026-08-13-model-training-v2-complete"
+
+
 # ---------------------------------------------------------------------------
 # File locations
 # ---------------------------------------------------------------------------
-ROOT_DIR = Path(__file__).parent.parent
-OUTPUT_DIR = ROOT_DIR / "data/field_core_outputs_v2"
-DEFAULT_INPUT_PATH = ROOT_DIR / "data/concrete_us_data_v2.csv"
-DEFAULT_OUTPUT_DIR = ROOT_DIR / "data/field_core_outputs_v2/preprocessed"
+DEFAULT_INPUT_PATH = Path("IMTS_concrete_field_core.csv")
+DEFAULT_OUTPUT_DIR = Path("outputs/preprocessed")
+
+# ---------------------------------------------------------------------------
+# Preprocessing run options
+# Edit these values here, then run: python 01_preprocess_concrete_data.py
+# ---------------------------------------------------------------------------
+FILTER_UNIT_SYSTEM = True
+UNIT_SYSTEM_TO_KEEP = 0  # 0 = US; 1 = Metric/Canada in the current extract
+KEEP_INVALID_CAST_DATES = False
+ALLOW_DUPLICATE_TEST_ID = False
 
 
-REGRESSION_INPUT_PATH = ROOT_DIR / "data/preprocessed/concrete_regression_eligible.csv"
+# ---------------------------------------------------------------------------
+# REQUIRED MODEL TRAINING SETTINGS FOR BOTH 02 AND 03
+# Edit here; the training scripts do not use command-line arguments.
+# ---------------------------------------------------------------------------
+REGRESSION_INPUT_PATH = DEFAULT_OUTPUT_DIR / "concrete_regression_eligible.csv"
+CLASSIFICATION_INPUT_PATH = DEFAULT_OUTPUT_DIR / "concrete_classification_eligible.csv"
+REGRESSION_OUTPUT_DIR = Path("outputs/regression_models")
+CLASSIFICATION_OUTPUT_DIR = Path("outputs/classification_models")
 
-CLASSIFICATION_INPUT_PATH = ROOT_DIR / "data/preprocessed/concrete_classification_eligible.csv"
+# Test rows are held back until final evaluation. Validation rows are used for
+# classification threshold selection. Splits are grouped by projectId.
+TEST_SIZE = 0.20
+VALIDATION_SIZE_WITHIN_TRAIN = 0.20
+RANDOM_STATE = 42
+N_JOBS = -1
 
-REGRESSION_OUTPUT_DIR = OUTPUT_DIR / "results/regression"
+# Start with these two operational horizons. Add another FEATURE_SETS key here
+# later if you want to compare more feature groups.
+TRAIN_FEATURE_SET_NAMES = [
+    "Day0_FieldPlusCompliance",
+    "Day7_FieldPlusCompliance",
+]
 
-CLASSIFICATION_OUTPUT_DIR = OUTPUT_DIR / "results/classification"
+# For failure screening, missing a real failure is expensive. The classifier
+# selects a validation threshold aiming for at least this recall.
+MIN_FAILURE_RECALL = 0.80
+
+# Complete list used by the training scripts. You normally do not edit this.
+MODEL_TRAINING_CONFIG_NAMES = [
+    "REGRESSION_INPUT_PATH",
+    "CLASSIFICATION_INPUT_PATH",
+    "REGRESSION_OUTPUT_DIR",
+    "CLASSIFICATION_OUTPUT_DIR",
+    "TEST_SIZE",
+    "VALIDATION_SIZE_WITHIN_TRAIN",
+    "RANDOM_STATE",
+    "N_JOBS",
+    "TRAIN_FEATURE_SET_NAMES",
+    "MIN_FAILURE_RECALL",
+]
+
 
 # ---------------------------------------------------------------------------
 # Dataset identity and targets
@@ -223,4 +268,3 @@ BASE_REQUIRED_COLUMNS = [
     "ApplicableSpecifiedStrength28",
     "AverageActualStrength28_psi",
 ]
-
