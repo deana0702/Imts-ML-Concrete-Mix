@@ -13,8 +13,8 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # File locations
 # ---------------------------------------------------------------------------
-DEFAULT_INPUT_PATH = Path("IMTS_concrete_field_core.csv")
-DEFAULT_OUTPUT_DIR = Path("outputs/preprocessed")
+DEFAULT_INPUT_PATH = Path("data/concrete_us_data_v2.csv")
+DEFAULT_OUTPUT_DIR = Path("data/field_core_outputs_v2/preprocessed")
 
 
 # ---------------------------------------------------------------------------
