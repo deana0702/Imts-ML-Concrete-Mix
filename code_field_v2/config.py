@@ -13,9 +13,25 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # File locations
 # ---------------------------------------------------------------------------
-DEFAULT_INPUT_PATH = Path("data/concrete_us_data_v2.csv")
-DEFAULT_OUTPUT_DIR = Path("data/field_core_outputs_v2/preprocessed")
+ROOT_DIR = Path(__file__).parent.parent
+DEFAULT_INPUT_PATH = ROOT_DIR / "data/concrete_us_data_v2.csv"
+DEFAULT_OUTPUT_DIR = ROOT_DIR / "data/field_core_outputs_v2/preprocessed"
 
+REGRESSION_INPUT_PATH = Path(
+    r"C:\IMTS\ML\preprocessed\concrete_regression_eligible.csv"
+)
+
+CLASSIFICATION_INPUT_PATH = Path(
+    r"C:\IMTS\ML\preprocessed\concrete_classification_eligible.csv"
+)
+
+REGRESSION_OUTPUT_DIR = Path(
+    r"C:\IMTS\ML\results\regression"
+)
+
+CLASSIFICATION_OUTPUT_DIR = Path(
+    r"C:\IMTS\ML\results\classification"
+)
 
 # ---------------------------------------------------------------------------
 # Dataset identity and targets
