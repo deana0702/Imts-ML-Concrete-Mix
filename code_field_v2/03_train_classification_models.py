@@ -32,6 +32,37 @@ from sklearn.utils.class_weight import compute_sample_weight
 import config
 
 
+REQUIRED_CONFIG_NAMES = [
+    "CLASSIFICATION_INPUT_PATH",
+    "CLASSIFICATION_OUTPUT_DIR",
+    "TEST_SIZE",
+    "VALIDATION_SIZE_WITHIN_TRAIN",
+    "RANDOM_STATE",
+    "N_JOBS",
+    "TRAIN_FEATURE_SET_NAMES",
+    "MIN_FAILURE_RECALL",
+    "FEATURE_SETS",
+    "GROUP_COLUMN",
+    "CLASSIFICATION_TARGET",
+]
+
+
+def validate_config() -> None:
+    missing = [name for name in REQUIRED_CONFIG_NAMES if not hasattr(config, name)]
+    if missing:
+        raise RuntimeError(
+            "Your config.py is older than this classification script. Missing: "
+            + ", ".join(missing)
+            + ". Replace config.py with the version delivered with this script."
+        )
+    for name in ["TEST_SIZE", "VALIDATION_SIZE_WITHIN_TRAIN", "MIN_FAILURE_RECALL"]:
+        if not 0 < getattr(config, name) < 1:
+            raise ValueError(f"{name} must be between 0 and 1.")
+    unknown = [n for n in config.TRAIN_FEATURE_SET_NAMES if n not in config.FEATURE_SETS]
+    if unknown:
+        raise ValueError("Unknown TRAIN_FEATURE_SET_NAMES: " + ", ".join(unknown))
+
+
 def read_dataset(path: Path) -> pd.DataFrame:
     if not path.exists() and path.suffix.lower() == ".csv":
         parquet_path = path.with_suffix(".parquet")
@@ -138,6 +169,7 @@ def evaluate(y_true: pd.Series, probability: np.ndarray, threshold: float) -> di
 
 
 def main() -> None:
+    validate_config()
     output_dir = config.CLASSIFICATION_OUTPUT_DIR
     model_dir = output_dir / "saved_models"
     prediction_dir = output_dir / "test_predictions"
