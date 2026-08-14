@@ -20,9 +20,13 @@ from xgboost import XGBRegressor
 
 
 BASEPATH = Path("data/prepared_28_day_standard_cure")
-DATA_FILE = BASEPATH / (
-    "03_standard_cured_test_level_28_working_data_"
-    "drop_rows_drop_columns_1.csv"
+# DATA_FILE = BASEPATH / (
+#     "03_standard_cured_test_level_28_working_data_"
+#     "drop_rows_drop_columns_1.csv"
+# )
+ROOT_DIR = Path(__file__).parent.parent
+DATA_FILE = ROOT_DIR / (
+    "data/concrete_us_data_v2.csv"
 )
 OUTPUT_PATH = BASEPATH / "results_grouped_cross_validation"
 
@@ -41,7 +45,7 @@ BATCH_FEATURE_COLUMNS = [
 FIELD_FEATURE_COLUMNS = BATCH_FEATURE_COLUMNS + [
     "uwSlump_actual",
     "uwAir_actual",
-    "waterAdded",
+    "WaterAdded_gal_per_yd3",
 ]
 
 FEATURE_SET_NAME = "FieldAdjusted"

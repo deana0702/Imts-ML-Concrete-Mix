@@ -8,10 +8,12 @@ from pathlib import Path
 CONFIG_VERSION = "2026-08-13-imts-mix-optimization-v1"
 
 # Input: CSV/Parquet produced by the IMTS SQL extract containing batch columns.
-RAW_INPUT_PATH = Path(r"IMTS_concrete_field_core.csv")
-PREPARED_DATA_PATH = Path(r"outputs/mix_optimization/mix_training_data.csv")
-MODEL_OUTPUT_DIR = Path(r"outputs/mix_optimization/models")
-OPTIMIZATION_OUTPUT_DIR = Path(r"outputs/mix_optimization/candidates")
+ROOT_DIR = Path(__file__).parent.parent
+OUTPUT_DIR = ROOT_DIR / "data/field_core_outputs_v2/mix_optimization"
+RAW_INPUT_PATH = ROOT_DIR / "data/concrete_us_data_v2.csv"
+PREPARED_DATA_PATH = OUTPUT_DIR / "preprocessed/mix_training_data.csv"
+MODEL_OUTPUT_DIR = OUTPUT_DIR / "models"
+OPTIMIZATION_OUTPUT_DIR = OUTPUT_DIR / "candidates"
 
 # IMTS unit/filter settings.
 FILTER_UNIT_SYSTEM = True
