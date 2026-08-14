@@ -30,7 +30,7 @@ import mix_config as cfg
 # Use None to keep every value. Use a list to select one or more values.
 # Examples: OFFICE_ID_FILTER = [2], PROJECT_ID_FILTER = [7627, 8993]
 # =============================================================================
-OFFICE_ID_FILTER = None
+OFFICE_ID_FILTER = 2
 PROJECT_ID_FILTER = None
 SUPPLIER_FILTER = None
 PLANT_FILTER = None
@@ -56,7 +56,8 @@ RISK_MIN_FAILURE_RATE_PERCENT = 5.0
 RISK_WHEN_P10_MARGIN_BELOW_PSI = 0.0
 
 MAX_ROWS_TO_PRINT = 50
-OUTPUT_DIR = Path("outputs/mix_optimization/historical_mix_performance")
+
+OUTPUT_DIR = cfg.OUTPUT_DIR / "historical_mix_performance"
 
 
 def normalize_filter_values(values):
