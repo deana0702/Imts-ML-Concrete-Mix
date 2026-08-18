@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import (
     mean_absolute_error,
@@ -63,6 +64,24 @@ def candidate_models() -> dict[str, object]:
             n_jobs=cfg.N_JOBS,
             random_state=cfg.RANDOM_STATE,
         ),
+        "Random Forest": Pipeline(
+                    steps=[
+                        (
+                            "imputer",
+                            SimpleImputer(strategy="median", add_indicator=True),
+                        ),
+                        (
+                            "model",
+                            RandomForestRegressor(
+                                n_estimators=500,
+                                min_samples_leaf=5,
+                                max_features=0.8,
+                                random_state=42,
+                                n_jobs=-1,
+                            ),
+                        ),
+                    ]
+                ),
     }
 
 
