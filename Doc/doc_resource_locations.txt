@@ -1,0 +1,29 @@
+•	Can we predict the final 28-day concrete strength?
+•	Can we identify concrete tests that may fall below the required 28-day strength?
+used in the document
+
+Mix optimization
+code: 95d_project_group_cross_validation.py 
+\data\field_core_outputs_v2\mix_optimization\models\project_group_cross_validation\cv_model_summary.csv
+
+Predictive Quality Analysis
+
+regressor:
+compare_thresholds_regression_vs_classifier_four_features.py
+\data\field_core_outputs\consolidated_four_model_cross_validation\best_model_by_feature_set_cv
+
+classification:
+\code_field\field_core_four_feature_risk_classification_cv.py
+\data\field_core_outputs\consolidated_four_feature_risk_classification_cv\best_classifier_by_feature_set_cv.csv
+
+regressor vs classifier: there are big difference between 
+
+code_field\compare_thresholds_regression_vs_classifier_four_features.py
+data\field_core_outputs\regression_vs_classifier_threshold_sweep_four_features
+or
+data\compare_regression_vs_classifier_fixed_threshold_four_features.py
+\data\field_core_outputs\regression_vs_classifier_fixed_threshold_four_features\fixed_threshold_recall_precision.csv
+
+Plot: \code_plots\recall_precision_threshold_sweep_all.py
+\data\field_core_outputs\regression_vs_classifier_threshold_sweep_four_features\plots\precision_vs_recall.png
+

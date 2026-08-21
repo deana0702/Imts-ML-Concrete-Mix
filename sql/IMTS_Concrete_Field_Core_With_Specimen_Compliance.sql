@@ -53,7 +53,7 @@ DECLARE @DesignStrengthTypeId   int = 30011;
     Office filter:
       NULL = all offices within the selected concrete-test unit system.
 */
-DECLARE @OfficeId int = NULL;
+DECLARE @OfficeId int = null;
 
 /*
     Offices to exclude from this extract.
@@ -747,6 +747,7 @@ SELECT
     END AS IsValidCastDate,
 
     c.placementType,
+    c.placementLocation,
     c.sampledFrom,
     c.plantNumber,
     c.mixNumber,
@@ -1932,5 +1933,70 @@ GROUP BY
 ORDER BY
     Strength28SpecimensPerConcreteTest;
 
-select * from #FinalData
-where officeId = 2 and FieldOutOfSpecAndStrengthFailure28 = 1
+select SampleId, labNo, SpecifiedBreakAge, ApplicableSpecifiedStrength28,
+ActualStrength28SpecimenCount, EffectiveSlump_in, uwSlump_specMin, uwSlump_specMax
+from #FinalData
+where officeId = 2 and FieldOutOfSpecAndStrengthFailure28 = 1 
+
+drop table #CTE;
+
+With CTE AS
+(
+    SELECT
+    SampleId,
+    labNo,
+    SpecifiedBreakAge,
+    ApplicableSpecifiedStrength28,
+    AverageActualStrength7_psi, AverageActualStrength28_psi, 
+    MinimumActualStrength28_psi, MaximumActualStrength28_psi,
+    placementType,
+    FieldOutOfSpecAndStrengthFailure28,
+    EffectiveSlump_in,
+    uwSlump_specMin,
+    uwSlump_specMax,
+    CASE
+        WHEN EffectiveSlump_in IS NULL
+          OR uwSlump_specMin IS NULL
+          OR uwSlump_specMax IS NULL
+            THEN NULL
+        WHEN EffectiveSlump_in < uwSlump_specMin
+          OR EffectiveSlump_in > uwSlump_specMax
+            THEN 'True'
+        ELSE 'False'
+    END AS OutOfSlumpSpec 
+    
+FROM #FinalData 
+WHERE officeId = 2 and projectId = 13316
+)
+
+
+select * into #CTE from CTE;
+
+select * from #CTE
+
+select * from #CTE where ApplicableSpecifiedStrength28 > AverageActualStrength28_psi
+select * from #CTE where OutOfSlumpSpec = 'True'
+select * from #CTE where FieldOutOfSpecAndStrengthFailure28 = 1
+
+select count(*) from #FinalData
+select OfficeName, projectId, labNo, supplierId, SupplierName, plantNumber, mixNumber,
+castDate, placementType, sampledFrom, 
+ApplicableSpecifiedStrength28, AverageActualStrength7_psi, AverageActualStrength28_psi, FailureFlag28
+from #FinalData
+where uwSlump_specMin >= 8 and uwSlump_specMin <= 11
+and uwConcreteTemp_specMin >= 50 and uwConcreteTemp_specMin <= 90
+and ApplicableSpecifiedStrength28 = 3000
+
+select OfficeName, projectId, labNo, supplierId, SupplierName, plantNumber, mixNumber,
+castDate, placementType, sampledFrom, 
+ApplicableSpecifiedStrength28,AverageActualStrength28_psi, FailureFlag28,
+uwSlump_actual, uwSlump_afterSP, uwSlump_specMin, uwSlump_specMax,
+uwAir_actual, uwAir_afterSP, uwAir_specMin, uwAir_specMax,
+uwConcreteTemp_actual, uwConcreteTemp_afterSP, uwConcreteTemp_specMin, uwConcreteTemp_specMax
+from #FinalData
+where supplierId = 795
+
+select supplierId, SupplierName, officeId, OfficeName, ApplicableSpecifiedStrength28,AverageActualStrength28_psi
+from #FinalData
+where FailureFlag28 = 0
+group by supplierId, SupplierName, officeId, OfficeName, ApplicableSpecifiedStrength28,AverageActualStrength28_psi
